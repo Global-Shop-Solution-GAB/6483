@@ -1,0 +1,421 @@
+﻿Program.Sub.ScreenSU.Start
+Gui.fmMain..Create(BaseForm)
+Gui.fmMain..Caption("Work Order Performance")
+Gui.fmMain..Size(1420,685)
+Gui.fmMain..MinX(0)
+Gui.fmMain..MinY(0)
+Gui.fmMain..Position(0,0)
+Gui.fmMain..AlwaysOnTop(False)
+Gui.fmMain..FontName("Tahoma")
+Gui.fmMain..FontSize(8.25)
+Gui.fmMain..ControlBox(True)
+Gui.fmMain..MaxButton(True)
+Gui.fmMain..MinButton(True)
+Gui.fmMain..MousePointer(0)
+Gui.fmMain..Moveable(True)
+Gui.fmMain..Sizeable(True)
+Gui.fmMain..ShowInTaskBar(True)
+Gui.fmMain..TitleBar(True)
+Gui.fmMain..Event(UnLoad,fmMain_UnLoad)
+Gui.fmMain.dtpInvDtStrt.Create(DatePicker)
+Gui.fmMain.dtpInvDtStrt.Enabled(True)
+Gui.fmMain.dtpInvDtStrt.Visible(True)
+Gui.fmMain.dtpInvDtStrt.Zorder(0)
+Gui.fmMain.dtpInvDtStrt.Size(100,20)
+Gui.fmMain.dtpInvDtStrt.Position(12,27)
+Gui.fmMain.dtpInvDtStrt.CheckBox(False)
+Gui.fmMain.dtpInvDtStrt.FontName("Tahoma")
+Gui.fmMain.dtpInvDtStrt.FontSize(8.25)
+Gui.fmMain.dtpInvDtEnd.Create(DatePicker)
+Gui.fmMain.dtpInvDtEnd.Enabled(True)
+Gui.fmMain.dtpInvDtEnd.Visible(True)
+Gui.fmMain.dtpInvDtEnd.Zorder(0)
+Gui.fmMain.dtpInvDtEnd.Size(100,20)
+Gui.fmMain.dtpInvDtEnd.Position(117,27)
+Gui.fmMain.dtpInvDtEnd.CheckBox(False)
+Gui.fmMain.dtpInvDtEnd.FontName("Tahoma")
+Gui.fmMain.dtpInvDtEnd.FontSize(8.25)
+Gui.fmMain.lblDtRange.Create(Label,"Please select a date range:",True,178,16,0,12,7,True,0,"Tahoma",10,,0,0)
+Gui.fmMain.lblDtRange.BorderStyle(0)
+Gui.fmMain.lblDtRange.FontStyle(True,False,False,False,False)
+Gui.fmMain.GsGcMain.Create(GsGridControl)
+Gui.fmMain.GsGcMain.Enabled(True)
+Gui.fmMain.GsGcMain.Visible(True)
+Gui.fmMain.GsGcMain.Zorder(0)
+Gui.fmMain.GsGcMain.Size(1398,569)
+Gui.fmMain.GsGcMain.Position(12,55)
+Gui.fmMain.GsGcMain.Anchor(15)
+Gui.fmMain.GsGcMain.Event(RowCellClick,GsGcMain_RowCellClick)
+Gui.fmMain.cmdRefresh.Create(Button)
+Gui.fmMain.cmdRefresh.Enabled(True)
+Gui.fmMain.cmdRefresh.Visible(True)
+Gui.fmMain.cmdRefresh.Zorder(0)
+Gui.fmMain.cmdRefresh.Size(36,23)
+Gui.fmMain.cmdRefresh.Position(221,26)
+Gui.fmMain.cmdRefresh.Caption("REFRESH")
+Gui.fmMain.cmdRefresh.FontName("Tahoma")
+Gui.fmMain.cmdRefresh.FontSize(8.25)
+Gui.fmMain.cmdRefresh.FontStyle(True,False,False,False,False)
+Gui.fmMain.cmdRefresh.Event(Click,cmdRefresh_Click)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'TJS, Sept 2021
+'Customer: Relita Doors North America
+'Quote: 12923
+'Business Case: The customer would like a Job Performance Gridview. This gridview will run by a Work Order
+'date closed range and show them estimated and actual dollars for labor, material and outside steps.
+
+Function.Intrinsic.UI.UsePixels ' Allows you to use Pixels instead of Twips throughout
+F.Intrinsic.Control.Try
+
+F.Intrinsic.Control.CallSub(EmptyDT)
+F.Intrinsic.Control.CallSub(SetContextMenus)
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(Error,"SubRoutine",V.Ambient.CurrentSubroutine,"eNumber",V.Ambient.ErrorNumber,"eDescription",V.Ambient.ErrorDescription)
+F.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.SetContextMenus.Start
+F.Intrinsic.Control.Try
+
+Gui.fmMain..ContextMenuCreate("ctxAll")
+Gui.fmMain..ContextMenuAddItem("ctxAll","Export",0,"Export to Excel")
+Gui.fmMain..ContextMenuAddItem("ctxAll","Reset Grid",0,"Reset Grid")
+Gui.fmMain..ContextMenuSetItemEventHandler("ctxAll","Export","ClickExport")
+Gui.fmMain..ContextMenuSetItemEventHandler("ctxAll","Reset Grid","ClickResetGrid")
+Gui.fmMain.GsGcMain.ContextMenuAttach("ctxAll")
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(Error,"SubRoutine",V.Ambient.CurrentSubroutine,"eNumber",V.Ambient.ErrorNumber,"eDescription",V.Ambient.ErrorDescription)
+F.Intrinsic.Control.EndTry
+Program.Sub.SetContextMenus.End
+
+Program.Sub.ClickExport.Start
+F.Intrinsic.Control.Try
+V.Local.sPath.Declare
+V.Local.sSQL.Declare
+
+'Saving CSV file
+F.Intrinsic.UI.ShowSaveFileDialog("","xls|*.xls",V.Local.sPath)
+
+F.Intrinsic.Control.If(V.Local.sPath.Trim,=,"***CANCEL***")
+	F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.String.Split(V.Local.sPath,".",V.Local.sPath)
+
+F.Intrinsic.String.Build("{0}.xls",V.Local.sPath(0),V.Local.sPath)
+
+Gui.fmMain.GsGcMain.Export(V.Local.sPath,"xls")
+
+F.Intrinsic.String.Build("File saved to {0}",V.Local.sPath.Trim,V.Local.sSQL)
+
+F.Intrinsic.UI.Msgbox(V.Local.sSQL,"Success")
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(Error,"SubRoutine",V.Ambient.CurrentSubroutine,"eNumber",V.Ambient.ErrorNumber,"eDescription",V.Ambient.ErrorDescription)
+F.Intrinsic.Control.EndTry
+Program.Sub.ClickExport.End
+
+Program.Sub.ClickResetGrid.Start
+F.Intrinsic.Control.Try
+V.Local.sSQL.Declare(String)
+V.Local.iUserID.Declare(Long)
+
+F.Global.Security.GetUserId(V.Caller.User, V.Caller.CompanyCode, V.Local.iUserID)
+F.Intrinsic.String.Build("delete from GS_REGISTRY where REG_ID = '6483' and USER_ID = {0}",V.Local.iUserID,V.Local.sSQL)
+
+F.ODBC.Connection!Comm.OpenCommonConnection
+F.ODBC.Connection!Comm.Execute(V.Local.sSQL)
+F.ODBC.Connection!Comm.Close
+
+F.Intrinsic.Control.CallSub(EmptyDt)
+F.Intrinsic.Control.CallSub(cmdRefresh_Click)
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(Error,"SubRoutine",V.Ambient.CurrentSubroutine,"eNumber",V.Ambient.ErrorNumber,"eDescription",V.Ambient.ErrorDescription)
+F.Intrinsic.Control.EndTry
+Program.Sub.ClickResetGrid.End
+
+Program.Sub.EmptyDt.Start
+F.Intrinsic.Control.Try
+
+F.Intrinsic.Control.If(V.DataTable.dtMain.Exists)
+	F.Data.Datatable.Close("dtMain")
+F.Intrinsic.Control.EndIf
+
+F.Data.DataTable.Create("dtMain",True)
+F.Data.DataTable.AddColumn("dtMain","Job","String")
+F.Data.DataTable.AddColumn("dtMain","Suffix","String")
+F.Data.DataTable.AddColumn("dtMain","Part","String")
+F.Data.DataTable.AddColumn("dtMain","Loc","String")
+F.Data.DataTable.AddColumn("dtMain","PL","String")
+F.Data.DataTable.AddColumn("dtMain","Description","String")
+F.Data.DataTable.AddColumn("dtMain","Customer","String")
+F.Data.DataTable.AddColumn("dtMain","SO","String")
+F.Data.DataTable.AddColumn("dtMain","SO Line","String")
+F.Data.DataTable.AddColumn("dtMain","Qty Ord","String")
+F.Data.DataTable.AddColumn("dtMain","Qty Compl","String")
+F.Data.DataTable.AddColumn("dtMain","Date Opened","Date")
+F.Data.DataTable.AddColumn("dtMain","Date Closed","Date")
+F.Data.DataTable.AddColumn("dtMain","Date Shipped","Date")
+F.Data.DataTable.AddColumn("dtMain","Est. Lab","Float")
+F.Data.DataTable.AddColumn("dtMain","Act. Lab","Float")
+F.Data.DataTable.AddColumn("dtMain","Est. Mat","Float")
+F.Data.DataTable.AddColumn("dtMain","Act. Mat","Float")
+F.Data.DataTable.AddColumn("dtMain","Est. Outs","Float")
+F.Data.DataTable.AddColumn("dtMain","Act. Outs","Float")
+F.Data.DataTable.AddColumn("dtMain","Tot Est.","Float")
+F.Data.DataTable.AddColumn("dtMain","Tot Act.","Float")
+F.Data.DataTable.AddColumn("dtMain","Tot Sales","Float")
+F.Data.DataTable.AddColumn("dtMain","Margin $","Float")
+F.Data.DataTable.AddColumn("dtMain","Margin %","Float")
+
+F.Intrinsic.Control.CallSub(GridFormat)
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(Error,"SubRoutine",V.Ambient.CurrentSubroutine,"eNumber",V.Ambient.ErrorNumber,"eDescription",V.Ambient.ErrorDescription)
+F.Intrinsic.Control.EndTry
+Program.Sub.EmptyDt.End
+
+Program.Sub.GridFormat.Start
+F.Intrinsic.Control.Try
+V.Local.sColumns.Declare
+V.Local.iCnt.Declare
+
+V.Local.sColumns.Set(V.DataTable.dtMain.FieldNames)
+F.Intrinsic.String.Split(V.Local.sColumns,"*!*",V.Local.sColumns)
+
+Gui.fmMain.GsGcMain.SuspendLayout
+
+Gui.fmMain.GsGcMain.AddGridviewFromDatatable("gvMain","dtMain")
+Gui.fmMain.GsGcMain.SetGridviewProperty("gvMain","ColumnPanelRowHeight",-1)
+Gui.fmMain.GsGcMain.SetGridviewProperty("gvMain",V.Enum.GridViewPropertyNames!ReadOnly,True)
+Gui.fmMain.GsGcMain.SetGridviewProperty("gvMain",V.Enum.GridViewPropertyNames!Editable,False)
+
+F.Intrinsic.Control.For(V.Local.iCnt,V.Local.sColumns.LBound,V.Local.sColumns.UBound,1)
+	Gui.fmMain.GsGcMain.SetColumnProperty("gvMain",V.Local.sColumns(V.Local.iCnt),"HeaderFontBold",True)
+	Gui.fmMain.GsGcMain.SetColumnProperty("gvMain",V.Local.sColumns(V.Local.iCnt),"HeaderHAlignment","Center")
+	Gui.fmMain.GsGcMain.SetColumnProperty("gvMain",V.Local.sColumns(V.Local.iCnt),"HeaderWordWrap","Wrap")
+	Gui.fmMain.GsGcMain.SetColumnProperty("gvMain",V.Local.sColumns(V.Local.iCnt),"HeaderBackColor",V.Enum.ThemeColors!BorderMinor)
+F.Intrinsic.Control.Next(V.Local.iCnt)
+
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","SO","Visible",False)
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","SO Line","Visible",False)
+
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Suffix","Caption","Sfx")
+
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Job","Fixed","Left")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Suffix","Fixed","Left")
+
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Job","Width",50)
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Suffix","Width",40)
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","PL","Width",30)
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Loc","Width",30)
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Description","Width",100)
+
+Gui.fmMain.GsGcMain.AddSummaryItem("gvMain","Est. Lab","E_LAB","Sum","","","C2")
+Gui.fmMain.GsGcMain.AddSummaryItem("gvMain","Act. Lab","A_LAB","Sum","","","C2")
+Gui.fmMain.GsGcMain.AddSummaryItem("gvMain","Est. Mat","E_MAT","Sum","","","C2")
+Gui.fmMain.GsGcMain.AddSummaryItem("gvMain","Act. Mat","A_MAT","Sum","","","C2")
+Gui.fmMain.GsGcMain.AddSummaryItem("gvMain","Est. Outs","E_OUT","Sum","","","C2")
+Gui.fmMain.GsGcMain.AddSummaryItem("gvMain","Act. Outs","A_OUT","Sum","","","C2")
+Gui.fmMain.GsGcMain.AddSummaryItem("gvMain","Tot Est.","E_OUT","Sum","","","C2")
+Gui.fmMain.GsGcMain.AddSummaryItem("gvMain","Tot Act.","A_OUT","Sum","","","C2")
+Gui.fmMain.GsGcMain.AddSummaryItem("gvMain","Tot Sales","A_OUT","Sum","","","C2")
+Gui.fmMain.GsGcMain.AddSummaryItem("gvMain","Margin $","A_OUT","Sum","","","C2")
+
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Date Shipped","DisplayCustomDatetime","d")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Date Opened","DisplayCustomDatetime","d")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Date Closed","DisplayCustomDatetime","d")
+
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Est. Lab","DisplayCustomNumeric","#0.00")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Act. Lab","DisplayCustomNumeric","#0.00")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Est. Mat","DisplayCustomNumeric","#0.00")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Act. Mat","DisplayCustomNumeric","#0.00")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Est. Outs","DisplayCustomNumeric","#0.00")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Act. Outs","DisplayCustomNumeric","#0.00")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Tot Est.","DisplayCustomNumeric","#0.00")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Tot Act.","DisplayCustomNumeric","#0.00")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Tot Sales","DisplayCustomNumeric","#0.00")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Margin $","DisplayCustomNumeric","#0.00")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Margin %","DisplayCustomNumeric","#0%")
+
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Qty Ord","CellHAlignment","far")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Qty Compl","CellHAlignment","far")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Date Shipped","CellHAlignment","far")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Date Opened","CellHAlignment","far")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Date Closed","CellHAlignment","far")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Est. Lab","CellHAlignment","far")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Act. Lab","CellHAlignment","far")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Est. Mat","CellHAlignment","far")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Act. Mat","CellHAlignment","far")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Est. Outs","CellHAlignment","far")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Act. Outs","CellHAlignment","far")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Tot Est.","CellHAlignment","far")
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Tot Act.","CellHAlignment","far")
+
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Job","CellForeColor",V.Enum.ThemeColors!AccentColor)
+Gui.fmMain.GsGcMain.SetColumnProperty("gvMain","Suffix","CellForeColor",V.Enum.ThemeColors!AccentColor)
+
+Gui.fmMain.GsGcMain.MainView("gvMain")
+F.Intrinsic.Control.CallSub(Deserialize)
+Gui.fmMain.GsGcMain.ResumeLayout
+Gui.fmMain..Show
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(Error,"SubRoutine",V.Ambient.CurrentSubroutine,"eNumber",V.Ambient.ErrorNumber,"eDescription",V.Ambient.ErrorDescription)
+F.Intrinsic.Control.EndTry
+Program.Sub.GridFormat.End
+
+Program.Sub.cmdRefresh_Click.Start
+F.Intrinsic.Control.Try
+V.Local.sStrtDate.Declare
+V.Local.sEndDate.Declare
+V.Local.sSQL.Declare
+
+V.Local.sStrtDate.Set(V.Screen.fmMain!dtpInvDtStrt.Value)
+V.Local.sEndDate.Set(V.Screen.fmMain!dtpInvDtEnd.Value)
+
+F.Intrinsic.Control.If(V.Screen.fmMain!dtpInvDtStrt.Value,>,V.Screen.fmMain!dtpInvDtEnd.Value)
+	F.Intrinsic.UI.Msgbox("Start date cannot be greater than the end date","Error")
+	F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.If(V.DataTable.dtData.Exists)
+	F.Data.DataTable.Close("dtData")
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.String.Build("Select JH.JOB as Job,JH.SUFFIX as Suffix,JH.PART as Part,JH.Location as Loc,JH.PRODUCT_LINE as PL,JH.DESCRIPTION as Description,JH.CUSTOMER as Customer,JH.QTY_ORDER as "Qty Ord",JH.QTY_COMPLETED as "Qty Compl",JH.DATE_OPENED as "Date Opened",JH.DATE_CLOSED as "Date Closed",(Select Sum(DOLLARS_ESTIMATED) from V_JOB_OPERATIONS JO where JO.LMO = 'L' and JO.JOB = JH.JOB and JO.SUFFIX = JH.SUFFIX) as "Est. Lab",(Select Sum(DOLLARS_ACTUAL) from V_JOB_OPERATIONS JO where JO.LMO = 'L' and JO.JOB = JH.JOB and JO.SUFFIX = JH.SUFFIX) as "Act. Lab",(Select Sum(DOLLARS_ESTIMATED) from V_JOB_OPERATIONS JO where JO.LMO = 'M' and JO.JOB = JH.JOB and JO.SUFFIX = JH.SUFFIX) as "Est. Mat",(Select Sum(DOLLARS_ACTUAL) from V_JOB_OPERATIONS JO where JO.LMO = 'M' and JO.JOB = JH.JOB and JO.SUFFIX = JH.SUFFIX) as "Act. Mat",(Select Sum(DOLLARS_ESTIMATED) from V_JOB_OPERATIONS JO where JO.LMO = 'O' and JO.JOB = JH.JOB and JO.SUFFIX = JH.SUFFIX) as "Est. Outs",(Select Sum(DOLLARS_ACTUAL) from V_JOB_OPERATIONS JO where JO.LMO = 'O' and JO.JOB = JH.JOB and JO.SUFFIX = JH.SUFFIX) as "Act. Outs",JH.AMT_SALES as "Tot Sales", case when JH.SALES_ORDER = '0000000' then '' else JH.SALES_ORDER end as SO, case when JH.SALES_ORDER_LINE = '000' then '' else JH.SALES_ORDER_LINE end as "SO Line", cast(NULL as Date) as "Date Shipped" from V_JOB_HEADER JH left join V_JOB_OPERATIONS JO on JH.JOB = JO.JOB and JH.SUFFIX = JO.SUFFIX where JH.DATE_CLOSED between '{0}' and '{1}' group by Job,Suffix,Part,Loc,PL,Description,Customer,"Qty Ord","Qty Compl","Date Opened","Date Closed","Tot Sales",SO,"SO Line","Date Shipped" order by "Date Closed" desc;",V.Local.sStrtDate.PervasiveDate,V.Local.sEndDate.PervasiveDate,V.Local.sSQL)
+
+F.Intrinsic.Control.CallSub(ODBC,"State","OPEN")
+	F.Data.DataTable.CreateFromSQL("dtData","conts",V.Local.sSQL)
+	F.Data.DataTable.CreateFromSQL("dtShipments","conts","select ORDER_NO, left(ORDER_REC, 3) as ORDER_LINE, max(DATE_SHIP) as DATE_SHIP from V_SHIPMENT_LINES group by ORDER_NO, ORDER_REC")
+	F.Data.DataTable.CreateFromSQL("dtInvoices","conts","select ORDER_NO, left(ORDER_LINE, 3) as ORDER_LINE, max(DATE_SHIPPED) as DATE_SHIP from ORDER_HIST_LINE group by ORDER_NO, ORDER_LINE")
+F.Intrinsic.Control.CallSub(ODBC,"State","CLOSE")
+
+'Use Shipments and Invoices to get most recent Shipped Date
+'We could use ORDER_LINES.DATE_SHIP but that table empties out after an order has been completely shipped
+F.Data.DataTable.Merge("dtInvoices","dtShipments",True,2)
+F.Data.DataTable.Close("dtInvoices")
+F.Data.DataTable.AddExpressionColumn("dtShipments","OrderKey","String","[ORDER_NO] + [ORDER_LINE]")
+F.Data.DataView.Create("dtShipments","dvLatestShipment",22,"[DATE_SHIP] <> #1/1/1900#","DATE_SHIP asc")
+F.Data.Dictionary.CreateFromDataView("dLatestShipment","dtShipments","dvLatestShipment","OrderKey","DATE_SHIP")
+F.Data.DataTable.Close("dtShipments")
+F.Data.DataTable.AddExpressionColumn("dtData","OrderKey","String","[SO] + [SO Line]")
+F.Data.DataTable.FillFromDictionary("dtData","dLatestShipment","OrderKey","Date Shipped")
+F.Data.Dictionary.Close("dLatestShipment")
+F.Data.DataTable.RemoveColumn("dtData","OrderKey")
+
+F.Data.Datatable.AddExpressionColumn("dtData","Tot Est.","Float","[Est. Lab]+[Est. Mat]+[Est. Outs]")
+F.Data.Datatable.AddExpressionColumn("dtData","Tot Act.","Float","[Act. Lab]+[Act. Mat]+[Act. Outs]")
+F.Data.Datatable.AddExpressionColumn("dtData","Margin $","Float","IIF([Tot Sales] = 0,0,[Tot Sales]-[Tot Act.])")
+F.Data.Datatable.AddExpressionColumn("dtData","Margin %","Float","IIF([Margin $] = 0,0,([Margin $]/[Tot Sales]))")
+
+F.Data.DataTable.Merge("dtData","dtMain",True,2)
+
+F.Data.DataTable.Close("dtData")
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(Error,"SubRoutine",V.Ambient.CurrentSubroutine,"eNumber",V.Ambient.ErrorNumber,"eDescription",V.Ambient.ErrorDescription)
+F.Intrinsic.Control.EndTry
+Program.Sub.cmdRefresh_Click.End
+
+Program.Sub.GsGcMain_RowCellClick.Start
+F.Intrinsic.Control.Try
+V.Local.sJob.Declare
+V.Local.sSfx.Declare
+V.Local.sParams.Declare
+
+F.Intrinsic.Control.If(V.Args.COLUMN,=,"Job","OR",V.Args.COLUMN,=,"Suffix")
+	Gui.fmMain.GsGcMain.GetCellValueByColumnName("gvMain","Job",V.Args.RowIndex,V.Local.sJob)
+	Gui.fmMain.GsGcMain.GetCellValueByColumnName("gvMain","Suffix",V.Args.RowIndex,V.Local.sSfx)
+
+	Gui.fmMain..Enabled(False)
+
+	F.Intrinsic.String.ConcatCallWrapperArgs("7",V.Local.sJob,V.Local.sSfx,"A",V.Local.sParams)
+	F.Global.General.CallWrapperSync(450000,V.Local.sParams)
+F.Intrinsic.Control.EndIf
+
+Gui.fmMain..Enabled(True)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(Error,"SubRoutine",V.Ambient.CurrentSubroutine,"eNumber",V.Ambient.ErrorNumber,"eDescription",V.Ambient.ErrorDescription)
+F.Intrinsic.Control.EndTry
+Program.Sub.GsGcMain_RowCellClick.End
+
+Program.Sub.ODBC.Start
+F.Intrinsic.Control.Try
+V.Local.bConState.Declare
+
+V.Local.bConState.Set(V.ODBC.conts.Exists)
+
+'Centralizing ODBC connections
+F.Intrinsic.Control.SelectCase(V.Args.State)
+	F.Intrinsic.Control.Case("OPEN")
+		F.Intrinsic.Control.If(V.Local.bConState,=,False)
+			F.ODBC.Connection!conts.OpenCompanyConnection
+		F.Intrinsic.Control.EndIf		
+	F.Intrinsic.Control.Case("CLOSE")
+		F.ODBC.Connection!conts.Close
+F.Intrinsic.Control.EndSelect
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(Error,"SubRoutine",V.Ambient.CurrentSubroutine,"eNumber",V.Ambient.ErrorNumber,"eDescription",V.Ambient.ErrorDescription)
+F.Intrinsic.Control.EndTry
+Program.Sub.ODBC.End
+
+Program.Sub.Serialize.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare
+V.Local.sSerialize.Declare
+
+Gui.fmMain.GsGcMain.Serialize("gvMain",V.Local.sSerialize)
+F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,"gvMain",6483,1001,False,"Serialize",False,0,-999.0,1/1/1980,12:00:00 AM,V.Local.sSerialize)
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(Error,"SubRoutine",V.Ambient.CurrentSubroutine,"eNumber",V.Ambient.ErrorNumber,"eDescription",V.Ambient.ErrorDescription)
+F.Intrinsic.Control.EndTry
+Program.Sub.Serialize.End
+
+Program.Sub.Deserialize.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare
+V.Local.sSerialize.Declare
+
+F.Global.Registry.ReadValue(V.Caller.User,V.Caller.CompanyCode,"gvMain",6483,1001,6,"",V.Local.sSerialize)
+F.Intrinsic.Control.If(V.Local.sSerialize,<>,"")
+    Gui.fmMain.GsGcMain.Deserialize(V.Local.sSerialize)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(Error,"SubRoutine",V.Ambient.CurrentSubroutine,"eNumber",V.Ambient.ErrorNumber,"eDescription",V.Ambient.ErrorDescription)
+F.Intrinsic.Control.EndTry
+Program.Sub.Deserialize.End
+
+Program.Sub.fmMain_UnLoad.Start
+F.Intrinsic.Control.CallSub(Serialize)
+F.Intrinsic.Control.End
+Program.Sub.fmMain_UnLoad.End
+
+Program.Sub.Error.Start
+V.Local.sError.Declare
+V.Local.iRet.Declare
+V.Local.sSep.Declare
+
+F.Intrinsic.String.Build("-------------------------------------------------------------------------------------",,V.Local.sSep)
+F.Intrinsic.String.Build("({5}-{6}){0}{7}{0}Project: {4}{0}{7}{0}Sub: {1}{0}Error: {2}, {3}", V.Ambient.NewLine, V.Args.SubRoutine, V.Args.eNumber, V.Args.eDescription,V.Caller.ScriptFile,V.Ambient.Date, V.Ambient.Time,V.Local.sSep,V.Local.sError)
+F.Intrinsic.UI.Msgbox(V.Local.sError,"Error",V.Local.iRet)
+Program.Sub.Error.End
+
+Program.Sub.Comments.Start
+${$5$}$20.1.8713.32002$}$1
+${$6$}$bbaker$}$20231206140219773$}$pM7xsHplA2E9VCTenDTJ47gi1rF/t66W9NKYfD4/MjrROCXdMXAq7QteW7M93RwEUGY57m31YMo=
+Program.Sub.Comments.End
